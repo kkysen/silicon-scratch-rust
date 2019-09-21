@@ -21,21 +21,21 @@ pub enum AudioDataFormat {
     MP3,
 }
 
-pub struct Asset<DataFormat> {
+pub struct Asset<'a, DataFormat> {
     pub asset_id: AssetId,
     pub data_format: DataFormat,
     pub name: String,
-    pub file: ZipFile,
+    pub file: ZipFile<'a>,
 }
 
-pub struct Costume {
-    pub asset: Asset<ImageDataFormat>,
+pub struct Costume<'a> {
+    pub asset: Asset<'a, ImageDataFormat>,
     pub bitmap_resolution: u32,
     pub rotation_center: Vec2<double>,
 }
 
-pub struct Sound {
-    pub asset: Asset<AudioDataFormat>,
+pub struct Sound<'a> {
+    pub asset: Asset<'a, AudioDataFormat>,
     pub rate: u32,
     pub sample_count: u32,
 }
@@ -83,10 +83,21 @@ pub type ColorPrimitive = Color;
 
 pub type TextPrimitive = String;
 
+pub enum VariableType {
+    Scalar,
+    List,
+    Broadcast, // same as Value
+}
+
 pub struct VariablePrimitive {
     name: String,
+    r#type: VariableType,
     id: String,
     position: Vec2<double>,
+}
+
+pub struct IndexPrimitive {
+    value: i32,
 }
 
 #[serde(tag = "kind")]
@@ -95,6 +106,7 @@ pub enum Primitive {
     Color(ColorPrimitive),
     Text(TextPrimitive),
     Variable(VariablePrimitive),
+    Index(IndexPrimitive),
 }
 
 pub enum BlockCategory {
@@ -151,11 +163,9 @@ pub struct Comment {
 }
 
 pub struct Target {
-    pub current_costume: Costume,
+    pub current_costume: &Costume,
     pub blocks: Vec<Block>,
     pub variables: Vec<Variable>,
-    pub lists: Vec<List>,
-    pub broadcasts: Vec<Broadcast>,
     pub comments: Vec<Comment>,
     pub costumes: Vec<Costume>,
     pub sounds: Vec<Sound>,
