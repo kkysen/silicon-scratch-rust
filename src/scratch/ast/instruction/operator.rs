@@ -2,8 +2,8 @@ use crate::scratch::ast::instruction::{Value, GetInstruction};
 
 pub enum OperatorInstruction<'a> {
     Id(GetInstruction<'a>),
-    UnaryOp(UnaryOp, Value<'a>),
-    BinaryOp(BinaryOp, Value<'a>, Value<'a>),
+    UnaryOp {op: UnaryOp, value: Value<'a>},
+    BinaryOp {op: BinaryOp, left: Value<'a>, right: Value<'a>},
 }
 
 enum UnaryOp {
@@ -33,13 +33,15 @@ enum FloatToFloatOp {
     Exp,
 }
 
-enum BinaryOp {
+// TODO check pub?
+pub enum BinaryOp {
     Math(MathOp),
     Comparison(ComparisonOp),
     Logic(LogicOp),
 }
 
-enum MathOp {
+// TODO check pub?
+pub enum MathOp {
     Add,
     Subtract,
     Multiply,

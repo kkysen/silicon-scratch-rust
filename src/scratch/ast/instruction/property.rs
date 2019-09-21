@@ -2,6 +2,7 @@ use crate::scratch::ast::instruction::Value;
 use crate::scratch::ast::{Variable, SpriteScripts, List};
 use crate::scratch::parse::project::sb3::RotationStyle;
 
+#[derive(Copy)] // TODO should Instructions be Copy?
 pub enum PropertyInstruction<'a> {
     Visibility(VisibleThing<'a>),
     Position(),
