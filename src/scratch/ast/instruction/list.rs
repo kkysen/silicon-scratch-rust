@@ -20,9 +20,8 @@ enum ReturningListInstruction<'a> {
     Pop(PushPop),
     Find(Value<'a>),
     Contains(Value<'a>),
-    ContainsSeq(&'a List<'a>),
-    // for list reads, in a.contains(b), can treat a and b the same
-    // heuristics will treat them the same
+    ContainsSeq(&'a Value<'a>),
+    Concat(&'a Value<'a>),
 }
 
 struct PushPop {

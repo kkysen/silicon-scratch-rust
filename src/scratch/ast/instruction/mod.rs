@@ -15,7 +15,7 @@ pub enum Instruction<'a> {
     Op(OperatorInstruction<'a>),
     Get(GetInstruction<'a>),
     Set(ReadWriteInstruction<'a>, Value<'a>),
-    List(ListInstruction<'a>, &'a List<'a>),
+    List(ListInstruction<'a>, &'a Value<'a>),
     ControlFlow(ControlFlowInstruction<'a>),
     Render(RenderInstruction<'a>),
     Custom(&'a CustomInstruction<'a>),
@@ -23,12 +23,13 @@ pub enum Instruction<'a> {
 
 pub enum ReadWriteInstruction<'a> {
     Variable(&'a Variable<'a>),
+    List(&'a List<'a>),
     Property(PropertyInstruction<'a>),
 }
 
 pub enum GetInstruction<'a> {
     ReadWrite(ReadWriteInstruction<'a>),
-    Element(ReturningListInstruction<'a>, &'a List<'a>),
+    Element(ReturningListInstruction<'a>, &'a Value<'a>),
 }
 
 pub type Value<'a> = OperatorInstruction<'a>;

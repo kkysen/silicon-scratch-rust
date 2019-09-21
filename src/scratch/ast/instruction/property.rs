@@ -1,8 +1,9 @@
 use crate::scratch::ast::instruction::Value;
-use crate::scratch::ast::Variable;
+use crate::scratch::ast::{Variable, SpriteScripts, List};
+use crate::scratch::parse::project::sb3::RotationStyle;
 
 pub enum PropertyInstruction<'a> {
-    Visibility(), // TODO add args for visibility, more complex
+    Visibility(VisibleThing<'a>),
     Position(),
     MousePointer(),
     Direction(),
@@ -14,6 +15,7 @@ pub enum PropertyInstruction<'a> {
     Answer(),
     UserName(),
     Named(NamedType, NamedProperty),
+    RotationStyle(RotationStyle),
     Draggable(),
     Layer(),
     Stage(StageProperty<'a>),
@@ -23,6 +25,12 @@ pub enum PropertyInstruction<'a> {
     AudioEffect(AudioEffectType),
     TouchingColor(Value<'a>),
     ColorIsTouchingColor(Value<'a>, Value<'a>),
+}
+
+enum VisibleThing<'a> {
+    Sprite(&'a SpriteScripts<'a>),
+    Variable(&'a Variable<'a>),
+    List(&'a List<'a>),
 }
 
 enum TimeUnit {
@@ -44,6 +52,12 @@ enum NamedType {
 enum NamedProperty {
     Number,
     Name,
+}
+
+enum RotationStyle {
+    LeftRight,
+    DontRotate,
+    AllAround,
 }
 
 enum StageProperty<'a> {

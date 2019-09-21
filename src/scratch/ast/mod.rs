@@ -40,12 +40,13 @@ struct Program<'a> {
 struct Variable<'a> {
     name: String,
     reads: Vec<&'a ReadWriteInstruction<'a>>,
-    writes: Vec<&'a Value<'a>>,
+    writes: Vec<&'a ReadWriteInstruction<'a>>,
 }
 
 struct List<'a> {
     name: String,
-    reads: Vec<&'a ListInstruction<'a>>,
+    reads: Vec<&'a ReadWriteInstruction<'a>>,
+    writes: Vec<&'a ReadWriteInstruction<'a>>, // should be empty as Scratch allows it, except for strings
     element_reads: Vec<&'a GetInstruction<'a>>,
     element_writes: Vec<&'a Value<'a>>,
 }
