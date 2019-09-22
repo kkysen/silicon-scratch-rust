@@ -1,8 +1,24 @@
 use std::collections::HashMap;
 
-use crate::scratch::ast::instruction::{GetInstruction, Instruction, ReadWriteInstruction, Value};
+use bumpalo::Bump;
+
+use crate::scratch::ast::instruction::{GetInstruction, Instruction, ReadWriteInstruction, SetInstruction, Value};
+use crate::scratch::ast::instruction::operator::{BinaryOp, OperatorInstruction, UnaryOp};
+use crate::scratch::ast::instruction::property::PropertyInstruction;
 
 pub mod instruction;
+
+pub enum Number {
+    UInt(u64),
+    Int(i64),
+    Float(f64),
+}
+
+pub enum Constant<'a> {
+    Bool(bool),
+    Number(Number),
+    String(&'a str),
+}
 
 pub struct Event {}
 
@@ -50,6 +66,45 @@ pub struct List<'a> {
     // should be empty as Scratch allows it, except for strings
     element_reads: Vec<&'a GetInstruction<'a>>,
     element_writes: Vec<&'a Value<'a>>,
+}
+
+pub struct AST<'a> {
+    bump: Bump,
+    program: Program<'a>,
+}
+
+impl<'a> AST<'a> {
+    fn alloc<T>(&self, value: T) -> &T {
+        self.bump.alloc(value)
+    }
+    
+    fn id(&'a self, get: GetInstruction<'a>) -> OperatorInstruction<'a> {
+        OperatorInstruction::Id(self.alloc(get))
+    }
+    
+    fn op1(&'a self, op: UnaryOp, value: Value<'a>) -> Value<'a> {
+        OperatorInstruction::UnaryOp {
+            op,
+            value: self.alloc(value),
+        }
+    }
+
+    fn op2(&'a self, op: BinaryOp, left: Value<'a>, right: Value<'a>) -> Value<'a> {
+        OperatorInstruction::BinaryOp {
+            op,
+            left: self.alloc(left),
+            right: self.alloc(right),
+        }
+    }
+
+    fn change_by(&'a self, property: PropertyInstruction<'a>, delta: Value<'a>) -> SetInstruction<'a> {
+        let read_property = ReadWriteInstruction::Property(property);
+        let get_property = GetInstruction::ReadWrite(read_property);
+        SetInstruction::new(
+            ReadWriteInstruction::Property(property),
+            self.op2(BinaryOp::add(), self.id(get_property), delta),
+        )
+    }
 }
 
 //use crate::scratch::ast::ValueKind::{Constant, Instruction, Variable, List};
