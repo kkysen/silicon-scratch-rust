@@ -1,5 +1,6 @@
 use crate::scratch::ast::instruction::Value;
 use crate::scratch::ast::Sound;
+use crate::scratch::ast::compute_kind::{Computable, ComputeKind};
 
 pub enum RenderInstruction<'a> {
     GlideTo(Value<'a>),
@@ -8,6 +9,12 @@ pub enum RenderInstruction<'a> {
     SoundInstruction(SoundInstruction, &'a Sound),
     StopAllSounds(),
     ClearAudioEffects(),
+}
+
+impl Computable for RenderInstruction<'_> {
+    fn get_compute_kind(&self) -> ComputeKind {
+        ComputeKind::Graphical
+    }
 }
 
 pub enum SayOrThink {

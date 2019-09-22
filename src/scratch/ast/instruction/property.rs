@@ -1,7 +1,8 @@
 use crate::scratch::ast::instruction::Value;
 use crate::scratch::ast::{Variable, SpriteScripts, List};
+use crate::scratch::ast::compute_kind::{Computable, ComputeKind};
 
-#[derive(Clone, Copy)] // TODO should Instructions be Copy?
+#[derive(Clone, Copy)]
 pub enum PropertyInstruction<'a> {
     Visibility(VisibleThing<'a>),
     Position(),
@@ -25,6 +26,17 @@ pub enum PropertyInstruction<'a> {
     AudioEffect(AudioEffectType),
     TouchingColor(Value<'a>),
     ColorIsTouchingColor(Value<'a>, Value<'a>),
+}
+
+impl Computable for PropertyInstruction<'_> {
+    fn get_compute_kind(&self) -> ComputeKind {
+        match self {
+            PropertyInstruction::UserName() => ComputeKind::Computational,
+            PropertyInstruction::Named(_, _) => ComputeKind::Computational,
+            PropertyInstruction::Stage(property) => property.get_compute_kind(),
+            _ => ComputeKind::Graphical,
+        }
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -70,6 +82,16 @@ pub enum StageProperty<'a> {
     Backdrop(NamedProperty),
     Volume(),
     Variable(&'a Variable<'a>),
+}
+
+impl Computable for StageProperty<'_> {
+    fn get_compute_kind(&self) -> ComputeKind {
+        match self {
+            StageProperty::Backdrop(_) => ComputeKind::Computational,
+            StageProperty::Volume() => ComputeKind::Graphical,
+            StageProperty::Variable(_) => ComputeKind::Computational,
+        }
+    }
 }
 
 #[derive(Clone, Copy)]

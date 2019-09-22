@@ -1,12 +1,31 @@
+use crate::scratch::ast::compute_kind::{Computable, ComputeKind};
+use crate::scratch::ast::Function;
 use crate::scratch::ast::instruction::{GetInstruction, Value};
 
 // all the GetInstruction and Values here need to be references to avoid a recursive type
 // these could be boxes, but we're going to allocate in a bump arena (bumpalo)
 #[derive(Clone, Copy)]
-pub enum OperatorInstruction<'a> {
+pub enum FunctionCallInstruction<'a> {
     Id(&'a GetInstruction<'a>),
     UnaryOp { op: UnaryOp, value: &'a Value<'a> },
     BinaryOp { op: BinaryOp, left: &'a Value<'a>, right: &'a Value<'a> },
+    Function { function: &'a Function<'a>, args: &'a [Value<'a>] },
+}
+
+impl Computable for FunctionCallInstruction<'_> {
+    fn get_compute_kind(&self) -> ComputeKind {
+        // own compute kind is computational, so only sub compute kinds matter
+        match self {
+            FunctionCallInstruction::Id(get)
+            => get.get_compute_kind(),
+            FunctionCallInstruction::UnaryOp { op: _, value }
+            => value.get_compute_kind(),
+            FunctionCallInstruction::BinaryOp { op: _, left, right }
+            => (*left, *right).get_compute_kind(),
+            FunctionCallInstruction::Function { function, args }
+            => function.get_compute_kind(args),
+        }
+    }
 }
 
 #[derive(Clone, Copy)]

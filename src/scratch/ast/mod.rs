@@ -2,11 +2,13 @@ use std::collections::HashMap;
 
 use bumpalo::Bump;
 
+use crate::scratch::ast::compute_kind::{Computable, ComputeKind};
 use crate::scratch::ast::instruction::{GetInstruction, Instruction, ReadWriteInstruction, SetInstruction, Value};
-use crate::scratch::ast::instruction::operator::{BinaryOp, OperatorInstruction, UnaryOp};
-use crate::scratch::ast::instruction::property::PropertyInstruction;
+use crate::scratch::ast::instruction::function_call::{BinaryOp, FunctionCallInstruction, UnaryOp};
+use std::cell::RefCell;
 
 pub mod instruction;
+pub mod compute_kind;
 
 pub enum Number {
     UInt(u64),
@@ -20,6 +22,12 @@ pub enum Constant<'a> {
     String(&'a str),
 }
 
+impl Computable for Constant<'_> {
+    fn get_compute_kind(&self) -> ComputeKind {
+        ComputeKind::Computational
+    }
+}
+
 pub struct Event {}
 
 pub struct BroadCast {}
@@ -30,6 +38,12 @@ pub struct Sprite {}
 
 pub struct Block<'a> {
     instructions: Vec<Instruction<'a>>,
+}
+
+impl Computable for Block<'_> {
+    fn get_compute_kind(&self) -> ComputeKind {
+        (&self.instructions[..]).get_compute_kind()
+    }
 }
 
 pub struct Script<'a> {
@@ -48,24 +62,55 @@ pub struct SpriteScripts<'a> {
     scripts: Vec<Script<'a>>,
 }
 
+pub struct Function<'a> {
+    name: String,
+    args: RefCell<Vec<Variable<'a>>>,
+    body: Block<'a>,
+}
+
+impl<'a> Function<'a> {
+    fn get_compute_kind(&self, args: &[Value<'a>]) -> ComputeKind {
+        // copy args into params, then evaluate body's compute kind
+        let params = &mut self.args.borrow_mut()[..];
+        params
+            .iter_mut()
+            .zip(args.iter())
+            .for_each(|(param, arg)| param.value = *arg);
+        self.body.get_compute_kind()
+    }
+}
+
 pub struct Program<'a> {
     globals: Scope<'a>,
     sprite_scripts: Vec<SpriteScripts<'a>>,
+    functions: Vec<Function<'a>>,
 }
 
 pub struct Variable<'a> {
     name: String,
+    value: Value<'a>, // TODO should this be Option?
+    // set to initial value for global, set to arg for function param
     reads: Vec<&'a ReadWriteInstruction<'a>>,
     writes: Vec<&'a ReadWriteInstruction<'a>>,
 }
 
+impl Computable for Variable<'_> {
+    fn get_compute_kind(&self) -> ComputeKind {
+        self.value.get_compute_kind()
+    }
+}
+
 pub struct List<'a> {
-    name: String,
-    reads: Vec<&'a ReadWriteInstruction<'a>>,
-    writes: Vec<&'a ReadWriteInstruction<'a>>,
+    variable: Variable<'a>,
     // should be empty as Scratch allows it, except for strings
     element_reads: Vec<&'a GetInstruction<'a>>,
     element_writes: Vec<&'a Value<'a>>,
+}
+
+impl Computable for List<'_> {
+    fn get_compute_kind(&self) -> ComputeKind {
+        self.variable.get_compute_kind()
+    }
 }
 
 pub struct AST<'a> {
@@ -78,32 +123,45 @@ impl<'a> AST<'a> {
         self.bump.alloc(value)
     }
     
-    fn id(&'a self, get: GetInstruction<'a>) -> OperatorInstruction<'a> {
-        OperatorInstruction::Id(self.alloc(get))
+    fn id(&'a self, get: GetInstruction<'a>) -> Value<'a> {
+        FunctionCallInstruction::Id(self.alloc(get))
     }
     
     fn op1(&'a self, op: UnaryOp, value: Value<'a>) -> Value<'a> {
-        OperatorInstruction::UnaryOp {
+        FunctionCallInstruction::UnaryOp {
             op,
             value: self.alloc(value),
         }
     }
-
+    
     fn op2(&'a self, op: BinaryOp, left: Value<'a>, right: Value<'a>) -> Value<'a> {
-        OperatorInstruction::BinaryOp {
+        FunctionCallInstruction::BinaryOp {
             op,
             left: self.alloc(left),
             right: self.alloc(right),
         }
     }
-
-    fn change_by(&'a self, property: PropertyInstruction<'a>, delta: Value<'a>) -> SetInstruction<'a> {
-        let read_property = ReadWriteInstruction::Property(property);
-        let get_property = GetInstruction::ReadWrite(read_property);
-        SetInstruction::new(
-            ReadWriteInstruction::Property(property),
-            self.op2(BinaryOp::add(), self.id(get_property), delta),
+    
+    fn get(&'a self, readable: ReadWriteInstruction<'a>) -> Value<'a> {
+        self.id(GetInstruction::ReadWrite(readable))
+    }
+    
+    fn set(&'a self, writable: ReadWriteInstruction<'a>, value: Value<'a>) -> SetInstruction<'a> {
+        SetInstruction::new(writable, value)
+    }
+    
+    fn change_using(&'a self, op: BinaryOp, property: ReadWriteInstruction<'a>, change: Value<'a>) -> SetInstruction<'a> {
+        self.set(
+            property,
+            self.op2(op,
+                     self.get(property),
+                     change,
+            ),
         )
+    }
+    
+    fn change_by(&'a self, property: ReadWriteInstruction<'a>, delta: Value<'a>) -> SetInstruction<'a> {
+        self.change_using(BinaryOp::add(), property, delta)
     }
 }
 
