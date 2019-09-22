@@ -27,10 +27,11 @@ impl ProjectArchive {
         let file = File::open(&path.path)?;
         let reader = BufReader::new(file);
         let mut archive = ZipArchive::new(reader)?;
+        let is_sprite = is_sprite(&mut archive)?;
         let archive = ProjectArchive {
             path,
             archive,
-            is_sprite: is_sprite(&mut archive)?,
+            is_sprite,
         };
         Ok(archive)
     }

@@ -3,19 +3,19 @@ use crate::scratch::ast::Sound;
 
 pub enum RenderInstruction<'a> {
     GlideTo(Value<'a>),
-    SayOrThink(SayOrThink, Value<'a>, Optional<Value<'a>>),
+    SayOrThink(SayOrThink, Value<'a>, Option<Value<'a>>),
     ClearVisualEffects(),
     SoundInstruction(SoundInstruction, &'a Sound),
     StopAllSounds(),
     ClearAudioEffects(),
 }
 
-enum SayOrThink {
+pub enum SayOrThink {
     Say,
     Think,
 }
 
-enum SoundInstruction {
+pub enum SoundInstruction {
     Play,
     Start,
 }

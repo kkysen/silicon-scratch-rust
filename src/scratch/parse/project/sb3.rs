@@ -1,6 +1,7 @@
-use serde_json::Deserialize;
 use std::collections::HashMap;
 use zip::read::ZipFile;
+
+pub struct Vec2<T>(T, T);
 
 pub struct AssetId {
     // TODO
@@ -31,7 +32,7 @@ pub struct Asset<'a, DataFormat> {
 pub struct Costume<'a> {
     pub asset: Asset<'a, ImageDataFormat>,
     pub bitmap_resolution: u32,
-    pub rotation_center: Vec2<double>,
+    pub rotation_center: Vec2<f64>,
 }
 
 pub struct Sound<'a> {
@@ -43,7 +44,7 @@ pub struct Sound<'a> {
 pub enum Number {
     UInt(u64),
     Int(i64),
-    Float(double),
+    Float(f64),
 }
 
 pub enum NumberOrString {
@@ -93,14 +94,14 @@ pub struct VariablePrimitive {
     name: String,
     r#type: VariableType,
     id: String,
-    position: Vec2<double>,
+    position: Vec2<f64>,
 }
 
 pub struct IndexPrimitive {
     value: i32,
 }
 
-#[serde(tag = "kind")]
+//#[serde(tag = "kind")]
 pub enum Primitive {
     Num(NumPrimitive),
     Color(ColorPrimitive),
@@ -143,33 +144,33 @@ pub struct Field {
     // TODO
 }
 
-pub struct Block {
+pub struct Block<'a> {
     pub op_code: OpCode,
-    pub next: Option<&Block>,
-    pub parent: Option<&Block>,
+    pub next: Option<&'a Block<'a>>,
+    pub parent: Option<&'a Block<'a>>,
     pub comment: Option<String>,
     pub inputs: HashMap<String, Input>,
     pub fields: HashMap<String, Field>,
     pub top_level: bool,
     pub shadow: bool,
-    pub position: Vec2<double>,
+    pub position: Vec2<f64>,
 }
 
-pub struct Comment {
-    pub block: Option<&Block>,
+pub struct Comment<'a> {
+    pub block: Option<&'a Block<'a>>,
     pub text: String,
     pub minimized: bool,
-    pub position: Vec2<double>,
+    pub position: Vec2<f64>,
 }
 
-pub struct Target {
-    pub current_costume: &Costume,
-    pub blocks: Vec<Block>,
+pub struct Target<'a> {
+    pub current_costume: &'a Costume<'a>,
+    pub blocks: Vec<Block<'a>>,
     pub variables: Vec<Variable>,
-    pub comments: Vec<Comment>,
-    pub costumes: Vec<Costume>,
-    pub sounds: Vec<Sound>,
-    pub volume: double,
+    pub comments: Vec<Comment<'a>>,
+    pub costumes: Vec<Costume<'a>>,
+    pub sounds: Vec<Sound<'a>>,
+    pub volume: f64,
 }
 
 pub enum VideoState {
@@ -178,10 +179,10 @@ pub enum VideoState {
     OnFlipped,
 }
 
-pub struct Stage {
-    pub target: Target,
-    pub tempo: double,
-    pub video_transparency: double,
+pub struct Stage<'a> {
+    pub target: Target<'a>,
+    pub tempo: f64,
+    pub video_transparency: f64,
     pub video_state: VideoState,
 }
 
@@ -191,14 +192,14 @@ pub enum RotationStyle {
     LeftRight,
 }
 
-pub struct Sprite {
-    pub target: Target,
+pub struct Sprite<'a> {
+    pub target: Target<'a>,
     pub name: String,
     pub visible: bool,
-    pub position: Vec2<double>,
-    pub size: double,
-    pub direction: double,
-    pub draggable: boolean,
+    pub position: Vec2<f64>,
+    pub size: f64,
+    pub direction: f64,
+    pub draggable: bool,
     pub rotation_style: RotationStyle,
     pub layer_order: u32,
 }
@@ -215,12 +216,12 @@ pub struct Meta {
     pub user_agent: String,
 }
 
-pub struct Targets {
-    pub stage: Stage,
-    pub sprites: Vec<Sprite>,
+pub struct Targets<'a> {
+    pub stage: Stage<'a>,
+    pub sprites: Vec<Sprite<'a>>,
 }
 
-pub struct Project {
-    pub targets: Targets,
+pub struct Project<'a> {
+    pub targets: Targets<'a>,
     pub meta: Meta,
 }

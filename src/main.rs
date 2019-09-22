@@ -1,3 +1,4 @@
+#[allow(dead_code)]
 mod scratch;
 
 use crate::scratch::parse::project;

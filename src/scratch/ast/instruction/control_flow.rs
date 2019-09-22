@@ -12,12 +12,12 @@ pub enum ControlFlowInstruction<'a> {
     DeleteSelf(),
 }
 
-enum BroadCastInstruction {
+pub enum BroadCastInstruction {
     Resume,
     Wait,
 }
 
-enum StopInstruction<'a> {
+pub enum StopInstruction<'a> {
     OwnScript(&'a Script<'a>),
     OtherScriptsInSprite(&'a SpriteScripts<'a>),
 }

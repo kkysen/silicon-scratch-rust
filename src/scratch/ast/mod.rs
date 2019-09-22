@@ -1,52 +1,53 @@
 use std::collections::HashMap;
-use crate::scratch::ast::instruction::{Value, Instruction, ReadWriteInstruction, GetInstruction};
-use crate::scratch::ast::instruction::list::ListInstruction;
+
+use crate::scratch::ast::instruction::{GetInstruction, Instruction, ReadWriteInstruction, Value};
 
 pub mod instruction;
 
-struct Event {}
+pub struct Event {}
 
-struct BroadCast {}
+pub struct BroadCast {}
 
-struct Sound {}
+pub struct Sound {}
 
-struct Sprite {}
+pub struct Sprite {}
 
-struct Block<'a> {
+pub struct Block<'a> {
     instructions: Vec<Instruction<'a>>,
 }
 
-struct Script<'a> {
+pub struct Script<'a> {
     trigger: Event,
     block: Block<'a>,
 }
 
-struct Scope<'a> {
+pub struct Scope<'a> {
     variables: HashMap<&'a str, Variable<'a>>,
     lists: HashMap<&'a str, List<'a>>,
 }
 
-struct SpriteScripts<'a> {
+pub struct SpriteScripts<'a> {
     sprite: &'a Sprite,
     locals: Scope<'a>,
     scripts: Vec<Script<'a>>,
 }
 
-struct Program<'a> {
+pub struct Program<'a> {
     globals: Scope<'a>,
     sprite_scripts: Vec<SpriteScripts<'a>>,
 }
 
-struct Variable<'a> {
+pub struct Variable<'a> {
     name: String,
     reads: Vec<&'a ReadWriteInstruction<'a>>,
     writes: Vec<&'a ReadWriteInstruction<'a>>,
 }
 
-struct List<'a> {
+pub struct List<'a> {
     name: String,
     reads: Vec<&'a ReadWriteInstruction<'a>>,
-    writes: Vec<&'a ReadWriteInstruction<'a>>, // should be empty as Scratch allows it, except for strings
+    writes: Vec<&'a ReadWriteInstruction<'a>>,
+    // should be empty as Scratch allows it, except for strings
     element_reads: Vec<&'a GetInstruction<'a>>,
     element_writes: Vec<&'a Value<'a>>,
 }

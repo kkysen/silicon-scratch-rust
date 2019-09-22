@@ -1,8 +1,7 @@
 use crate::scratch::ast::instruction::Value;
 use crate::scratch::ast::{Variable, SpriteScripts, List};
-use crate::scratch::parse::project::sb3::RotationStyle;
 
-#[derive(Copy)] // TODO should Instructions be Copy?
+//#[derive(Copy)] // TODO should Instructions be Copy?
 pub enum PropertyInstruction<'a> {
     Visibility(VisibleThing<'a>),
     Position(),
@@ -28,13 +27,13 @@ pub enum PropertyInstruction<'a> {
     ColorIsTouchingColor(Value<'a>, Value<'a>),
 }
 
-enum VisibleThing<'a> {
+pub enum VisibleThing<'a> {
     Sprite(&'a SpriteScripts<'a>),
     Variable(&'a Variable<'a>),
     List(&'a List<'a>),
 }
 
-enum TimeUnit {
+pub enum TimeUnit {
     Second,
     Minute,
     Hour,
@@ -45,29 +44,29 @@ enum TimeUnit {
     DaysSince2000,
 }
 
-enum NamedType {
+pub enum NamedType {
     Costume,
     Backdrop,
 }
 
-enum NamedProperty {
+pub enum NamedProperty {
     Number,
     Name,
 }
 
-enum RotationStyle {
+pub enum RotationStyle {
     LeftRight,
     DontRotate,
     AllAround,
 }
 
-enum StageProperty<'a> {
+pub enum StageProperty<'a> {
     Backdrop(NamedProperty),
     Volume(),
     Variable(&'a Variable<'a>),
 }
 
-enum VisualEffectType {
+pub enum VisualEffectType {
     Color,
     Fisheye,
     Whirl,
@@ -77,7 +76,7 @@ enum VisualEffectType {
     Ghost,
 }
 
-enum AudioEffectType {
+pub enum AudioEffectType {
     Pitch,
     PanLeftRight,
 }
