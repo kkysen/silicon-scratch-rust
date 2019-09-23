@@ -5,25 +5,25 @@ use crate::scratch::ast::instruction::{GetInstruction, Value};
 // all the GetInstruction and Values here need to be references to avoid a recursive type
 // these could be boxes, but we're going to allocate in a bump arena (bumpalo)
 #[derive(Clone, Copy)]
-pub enum FunctionCallInstruction<'a> {
+pub enum CallInstruction<'a> {
     Id(&'a GetInstruction<'a>),
     UnaryOp { op: UnaryOp, value: &'a Value<'a> },
     BinaryOp { op: BinaryOp, left: &'a Value<'a>, right: &'a Value<'a> },
-    Function { function: &'a Function<'a>, args: &'a [Value<'a>] },
+    Function(FunctionCallInstruction<'a>),
 }
 
-impl Computable for FunctionCallInstruction<'_> {
+impl Computable for CallInstruction<'_> {
     fn get_compute_kind(&self) -> ComputeKind {
         // own compute kind is computational, so only sub compute kinds matter
         match self {
-            FunctionCallInstruction::Id(get)
+            CallInstruction::Id(get)
             => get.get_compute_kind(),
-            FunctionCallInstruction::UnaryOp { op: _, value }
+            CallInstruction::UnaryOp { op: _, value }
             => value.get_compute_kind(),
-            FunctionCallInstruction::BinaryOp { op: _, left, right }
+            CallInstruction::BinaryOp { op: _, left, right }
             => (*left, *right).get_compute_kind(),
-            FunctionCallInstruction::Function { function, args }
-            => function.get_compute_kind(args),
+            CallInstruction::Function(function)
+            => function.get_compute_kind(),
         }
     }
 }
@@ -106,4 +106,23 @@ pub enum ComparisonOp {
 pub enum LogicOp {
     And,
     Or,
+}
+
+#[derive(Clone, Copy)]
+pub struct FunctionCallInstruction<'a> {
+    function: &'a Function<'a>,
+    args: &'a [Value<'a>],
+}
+
+impl<'a> FunctionCallInstruction<'a> {
+    fn new(function: &'a Function<'a>, args: &'a [Value<'a>]) -> FunctionCallInstruction<'a> {
+        assert_eq!(function.params.len(), args.len());
+        FunctionCallInstruction { function, args }
+    }
+}
+
+impl Computable for FunctionCallInstruction<'_> {
+    fn get_compute_kind(&self) -> ComputeKind {
+        self.function.get_compute_kind(self.args)
+    }
 }

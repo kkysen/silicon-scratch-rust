@@ -1,7 +1,7 @@
 use crate::scratch::ast::{Constant, List, Variable};
 use crate::scratch::ast::compute_kind::{Computable, ComputeKind};
 use crate::scratch::ast::instruction::control_flow::ControlFlowInstruction;
-use crate::scratch::ast::instruction::function_call::FunctionCallInstruction;
+use crate::scratch::ast::instruction::function_call::CallInstruction;
 use crate::scratch::ast::instruction::list::{ListInstruction, ReturningListInstruction};
 use crate::scratch::ast::instruction::property::PropertyInstruction;
 use crate::scratch::ast::instruction::render::RenderInstruction;
@@ -13,7 +13,7 @@ pub mod control_flow;
 pub mod render;
 
 pub enum Instruction<'a> {
-    Op(FunctionCallInstruction<'a>),
+    Op(CallInstruction<'a>),
     Get(GetInstruction<'a>),
     Set(SetInstruction<'a>),
     List(ListInstruction<'a>, &'a Value<'a>),
@@ -98,4 +98,4 @@ impl Computable for SetInstruction<'_> {
     }
 }
 
-pub type Value<'a> = FunctionCallInstruction<'a>;
+pub type Value<'a> = CallInstruction<'a>;

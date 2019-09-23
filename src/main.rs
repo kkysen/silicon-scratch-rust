@@ -1,3 +1,5 @@
+#![feature(slice_from_raw_parts)]
+
 #[allow(dead_code)]
 mod scratch;
 
